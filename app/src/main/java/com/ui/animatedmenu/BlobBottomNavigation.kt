@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -155,6 +156,80 @@ private val toolItems = listOf(
 @Composable
 private fun ToolButtonGrid(onShowcase: () -> Unit) {
     var tooltipText by remember { mutableStateOf<String?>(null) }
+    var activeButton by remember { mutableIntStateOf(-1) } // -1=none, 0-5=active tool
+    var isPatchExploding by remember { mutableStateOf(false) }
+    var patchProgress by remember { mutableFloatStateOf(0f) }
+    var patchStatusText by remember { mutableStateOf("") }
+
+    // Screen fill animation for non-patch buttons
+    val fillRadius by animateFloatAsState(
+        targetValue = if (activeButton in listOf(0, 1, 3, 4)) 2000f else 0f,
+        animationSpec = tween(1200, easing = FastOutSlowInEasing),
+        label = "fillRadius",
+        finishedListener = {
+            if (activeButton in listOf(0, 1, 3, 4)) {
+                // After fill completes, reset after a delay (handled by LaunchedEffect)
+            }
+        }
+    )
+
+    // Reset after fill animation or patch
+    LaunchedEffect(activeButton) {
+        if (activeButton in listOf(0, 1, 3, 4)) {
+            kotlinx.coroutines.delay(2500)
+            activeButton = -1
+        }
+    }
+
+    // Patch explosion sequence
+    LaunchedEffect(isPatchExploding) {
+        if (isPatchExploding) {
+            patchProgress = 0f
+            patchStatusText = "Initializing patch engine..."
+            kotlinx.coroutines.delay(800)
+            patchStatusText = "Decompiling resources..."
+            val steps = listOf(
+                0.15f to "Analyzing smali classes...",
+                0.30f to "Applying method patches...",
+                0.45f to "Injecting hooks...",
+                0.60f to "Rebuilding resources...",
+                0.75f to "Optimizing DEX files...",
+                0.90f to "Signing APK...",
+                1.0f to "Patch complete!"
+            )
+            for ((target, msg) in steps) {
+                patchStatusText = msg
+                val current = patchProgress
+                val animSteps = 20
+                for (i in 1..animSteps) {
+                    patchProgress = current + (target - current) * i / animSteps
+                    kotlinx.coroutines.delay(25)
+                }
+                kotlinx.coroutines.delay(200)
+            }
+            kotlinx.coroutines.delay(1000)
+            isPatchExploding = false
+            activeButton = -1
+            patchProgress = 0f
+        }
+    }
+
+    // Explosion scale
+    val explodeScale by animateFloatAsState(
+        targetValue = if (isPatchExploding) 1f else 0f,
+        animationSpec = if (isPatchExploding) spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ) else tween(300),
+        label = "explode"
+    )
+
+    // Icons visibility
+    val iconsAlpha by animateFloatAsState(
+        targetValue = if (isPatchExploding || activeButton in listOf(0, 1, 3, 4)) 0f else 1f,
+        animationSpec = tween(400),
+        label = "iconsAlpha"
+    )
 
     val inf = rememberInfiniteTransition(label = "toolGrid")
     val phase by inf.animateFloat(
@@ -163,112 +238,234 @@ private fun ToolButtonGrid(onShowcase: () -> Unit) {
         label = "toolPhase"
     )
 
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            "Tools",
-            color = Color(0xFF2D2D2D),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
-        )
-
-        Spacer(Modifier.height(4.dp))
-
-        // 3x2 grid
-        for (row in 0..1) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                for (col in 0..2) {
-                    val idx = row * 3 + col
-                    val tool = toolItems[idx]
-                    val enterAnim = remember { Animatable(0f) }
-                    LaunchedEffect(Unit) {
-                        kotlinx.coroutines.delay(idx * 100L)
-                        enterAnim.animateTo(1f, tween(400, easing = FastOutSlowInEasing))
-                    }
-
-                    val float = sin(phase + idx * 0.8f).toFloat() * 2f
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .scale(enterAnim.value)
-                            .offset(y = float.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            tool.color.copy(alpha = 0.15f),
-                                            tool.color.copy(alpha = 0.08f)
-                                        )
-                                    )
-                                )
-                                .combinedClickable(
-                                    onClick = { /* tool action placeholder */ },
-                                    onLongClick = { tooltipText = "${tool.label}: ${tool.description}" }
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Subtle gradient ring
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                drawCircle(
-                                    tool.color.copy(alpha = 0.1f),
-                                    radius = size.width / 2.5f
-                                )
-                            }
-                            Icon(
-                                tool.icon, null,
-                                tint = tool.color,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            tool.label,
-                            color = Color(0xFF4A4A4A),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1
-                        )
-                    }
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // Screen fill overlay for non-patch buttons
+        if (activeButton in listOf(0, 1, 3, 4)) {
+            val fillColor = toolItems[activeButton].color
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawCircle(
+                    fillColor.copy(alpha = 0.85f),
+                    radius = fillRadius,
+                    center = center
+                )
+            }
+            // Status text on fill
+            if (fillRadius > 500f) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.align(Alignment.Center)
+                ) {
+                    Icon(
+                        toolItems[activeButton].icon, null,
+                        tint = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        toolItems[activeButton].label,
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        toolItems[activeButton].description,
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
 
-        // Tooltip display
-        if (tooltipText != null) {
-            Spacer(Modifier.height(4.dp))
+        // Patch explosion view
+        if (isPatchExploding) {
             Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF2D2D2D))
-                    .clickable { tooltipText = null }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.fillMaxSize()
+                    .background(Color(0xFF0D1117).copy(alpha = explodeScale)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(tooltipText!!, color = Color(0xFFF5F5F5), fontSize = 12.sp)
+                // Explosion particles
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val patchColor = toolItems[2].color
+                    for (i in 0..20) {
+                        val angle = (i * 18f) * (Math.PI / 180f).toFloat()
+                        val dist = explodeScale * 300f * (1f + sin(phase + i * 0.5f).toFloat() * 0.3f)
+                        val px = center.x + kotlin.math.cos(angle) * dist
+                        val py = center.y + kotlin.math.sin(angle) * dist
+                        val dotSize = (4f + (i % 4) * 2f) * explodeScale
+                        drawCircle(
+                            patchColor.copy(alpha = (0.6f * explodeScale).coerceIn(0f, 1f)),
+                            dotSize,
+                            Offset(px, py)
+                        )
+                    }
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 40.dp)
+                ) {
+                    // Patch icon
+                    Icon(
+                        Icons.Filled.Build, null,
+                        tint = toolItems[2].color,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .scale(0.8f + explodeScale * 0.2f)
+                    )
+                    Spacer(Modifier.height(20.dp))
+
+                    // Status text
+                    Text(
+                        patchStatusText,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(24.dp))
+
+                    // Progress bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.White.copy(alpha = 0.1f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(patchProgress)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(toolItems[2].color, Color(0xFF64B5F6))
+                                    )
+                                )
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "${(patchProgress * 100).toInt()}%",
+                        color = toolItems[2].color,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        // Normal grid (fades out during animations)
+        if (iconsAlpha > 0f) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 28.dp)
+                    .graphicsLayer { alpha = iconsAlpha },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    "Tools",
+                    color = Color(0xFF2D2D2D),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
 
-        // Showcase link
-        Text(
-            text = "Tap 🔍 for UI Showcase",
-            color = Color(0xFF888888),
-            fontSize = 12.sp,
-            modifier = Modifier.clickable { onShowcase() }
-        )
+                Spacer(Modifier.height(4.dp))
+
+                for (row in 0..1) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        for (col in 0..2) {
+                            val idx = row * 3 + col
+                            val tool = toolItems[idx]
+                            val enterAnim = remember { Animatable(0f) }
+                            LaunchedEffect(Unit) {
+                                kotlinx.coroutines.delay(idx * 100L)
+                                enterAnim.animateTo(1f, tween(400, easing = FastOutSlowInEasing))
+                            }
+                            val float = sin(phase + idx * 0.8f).toFloat() * 2f
+
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .scale(enterAnim.value)
+                                    .offset(y = float.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(RoundedCornerShape(18.dp))
+                                        .background(
+                                            Brush.verticalGradient(
+                                                listOf(
+                                                    tool.color.copy(alpha = 0.15f),
+                                                    tool.color.copy(alpha = 0.08f)
+                                                )
+                                            )
+                                        )
+                                        .combinedClickable(
+                                            onClick = {
+                                                if (idx == 2) {
+                                                    // Patch: explosion
+                                                    activeButton = 2
+                                                    isPatchExploding = true
+                                                } else if (idx in listOf(0, 1, 3, 4)) {
+                                                    // Fill animation
+                                                    activeButton = idx
+                                                }
+                                            },
+                                            onLongClick = {
+                                                tooltipText = "${tool.label}: ${tool.description}"
+                                            }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        drawCircle(tool.color.copy(alpha = 0.1f), radius = size.width / 2.5f)
+                                    }
+                                    Icon(tool.icon, null, tint = tool.color, modifier = Modifier.size(28.dp))
+                                }
+                                Spacer(Modifier.height(6.dp))
+                                Text(
+                                    tool.label,
+                                    color = Color(0xFF4A4A4A),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (tooltipText != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF2D2D2D))
+                            .clickable { tooltipText = null }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(tooltipText!!, color = Color(0xFFF5F5F5), fontSize = 12.sp)
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Tap \uD83D\uDD0D for UI Showcase",
+                    color = Color(0xFF888888),
+                    fontSize = 12.sp,
+                    modifier = Modifier.clickable { onShowcase() }
+                )
+            }
+        }
     }
 }
 
