@@ -3,15 +3,16 @@ package com.ui.animatedmenu
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -20,15 +21,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlin.math.abs
+import kotlin.math.sin
 
 /**
  * Animated Blob Bottom Navigation Bar
@@ -86,26 +93,14 @@ fun AnimatedBlobMenuScreen(onShowcase: () -> Unit = {}) {
                 onSearchClick = onShowcase
             )
 
-            // Content area
+            // Content area with tool buttons
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = screenTitles[selectedIndex],
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = Color(0xFF2D2D2D)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Tap 🔍 for UI Showcase",
-                        color = Color(0xFF666666),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                ToolButtonGrid(onShowcase = onShowcase)
             }
 
             // Bottom navigation bar with blob animation
@@ -137,6 +132,147 @@ fun AnimatedBlobMenuScreen(onShowcase: () -> Unit = {}) {
         )
     }
 }
+
+// ── Tool Buttons Grid ───────────────────────────────────────────────────────────
+
+data class ToolItem(
+    val icon: ImageVector,
+    val label: String,
+    val description: String,
+    val color: Color
+)
+
+private val toolItems = listOf(
+    ToolItem(Icons.Filled.FolderOpen, "Select APK", "Pick an APK file from storage", Color(0xFFFFC107)),
+    ToolItem(Icons.Filled.PhoneAndroid, "Extract App", "Extract APK from installed apps", Color(0xFF4CAF50)),
+    ToolItem(Icons.Filled.Build, "Patch", "Apply patches to selected APK", Color(0xFF2196F3)),
+    ToolItem(Icons.Filled.ContentCopy, "Backup", "Create a full backup of APK", Color(0xFF9C27B0)),
+    ToolItem(Icons.Filled.Key, "Signer", "Sign APK with custom keystore", Color(0xFFFF5722)),
+    ToolItem(Icons.Filled.AutoFixHigh, "Toolkit", "Additional tools & utilities", Color(0xFF00BCD4)),
+)
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ToolButtonGrid(onShowcase: () -> Unit) {
+    var tooltipText by remember { mutableStateOf<String?>(null) }
+
+    val inf = rememberInfiniteTransition(label = "toolGrid")
+    val phase by inf.animateFloat(
+        0f, 6.28f,
+        infiniteRepeatable(tween(4000, easing = LinearEasing)),
+        label = "toolPhase"
+    )
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            "Tools",
+            color = Color(0xFF2D2D2D),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        // 3x2 grid
+        for (row in 0..1) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                for (col in 0..2) {
+                    val idx = row * 3 + col
+                    val tool = toolItems[idx]
+                    val enterAnim = remember { Animatable(0f) }
+                    LaunchedEffect(Unit) {
+                        kotlinx.coroutines.delay(idx * 100L)
+                        enterAnim.animateTo(1f, tween(400, easing = FastOutSlowInEasing))
+                    }
+
+                    val float = sin(phase + idx * 0.8f).toFloat() * 2f
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .scale(enterAnim.value)
+                            .offset(y = float.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            tool.color.copy(alpha = 0.15f),
+                                            tool.color.copy(alpha = 0.08f)
+                                        )
+                                    )
+                                )
+                                .combinedClickable(
+                                    onClick = { /* tool action placeholder */ },
+                                    onLongClick = { tooltipText = "${tool.label}: ${tool.description}" }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Subtle gradient ring
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                drawCircle(
+                                    tool.color.copy(alpha = 0.1f),
+                                    radius = size.width / 2.5f
+                                )
+                            }
+                            Icon(
+                                tool.icon, null,
+                                tint = tool.color,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            tool.label,
+                            color = Color(0xFF4A4A4A),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+        }
+
+        // Tooltip display
+        if (tooltipText != null) {
+            Spacer(Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF2D2D2D))
+                    .clickable { tooltipText = null }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(tooltipText!!, color = Color(0xFFF5F5F5), fontSize = 12.sp)
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Showcase link
+        Text(
+            text = "Tap 🔍 for UI Showcase",
+            color = Color(0xFF888888),
+            fontSize = 12.sp,
+            modifier = Modifier.clickable { onShowcase() }
+        )
+    }
+}
+
+// ── Bottom Bar ──────────────────────────────────────────────────────────────────
 
 @Composable
 fun BlobBottomBar(
