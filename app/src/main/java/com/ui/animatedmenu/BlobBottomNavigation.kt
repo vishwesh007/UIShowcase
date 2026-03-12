@@ -280,7 +280,7 @@ private fun ToolButtonGrid(onShowcase: () -> Unit) {
         if (isPatchExploding) {
             Box(
                 modifier = Modifier.fillMaxSize()
-                    .background(Color(0xFF0D1117).copy(alpha = explodeScale)),
+                    .background(Color(0xFF0D1117).copy(alpha = explodeScale.coerceIn(0f, 1f))),
                 contentAlignment = Alignment.Center
             ) {
                 // Explosion particles
@@ -293,7 +293,7 @@ private fun ToolButtonGrid(onShowcase: () -> Unit) {
                         val py = center.y + kotlin.math.sin(angle) * dist
                         val dotSize = (4f + (i % 4) * 2f) * explodeScale
                         drawCircle(
-                            patchColor.copy(alpha = (0.6f * explodeScale).coerceIn(0f, 1f)),
+                            patchColor.copy(alpha = (0.6f * explodeScale.coerceIn(0f, 1f))),
                             dotSize,
                             Offset(px, py)
                         )
@@ -334,7 +334,7 @@ private fun ToolButtonGrid(onShowcase: () -> Unit) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(patchProgress)
+                                .fillMaxWidth(patchProgress.coerceIn(0.01f, 1f))
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
