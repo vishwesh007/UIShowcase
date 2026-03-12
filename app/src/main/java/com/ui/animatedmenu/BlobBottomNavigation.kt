@@ -284,38 +284,40 @@ private fun DrawScope.drawBarWithBlob(
     val blobLeft = blobCenterX - halfBlob
     val blobRight = blobCenterX + halfBlob
 
-    // Start from top-left corner of the bar
-    path.moveTo(cornerRadius, barTop)
+    // Start from bottom of top-left corner on the left edge
+    path.moveTo(0f, barTop + cornerRadius)
 
-    // Top edge: draw up to the blob, then the blob curve, then continue
-    if (blobLeft > cornerRadius) {
+    // Top-left corner → top edge → blob
+    if (blobLeft >= cornerRadius) {
+        // Normal: corner, flat top, then blob
+        path.cubicTo(0f, barTop, 0f, barTop, cornerRadius, barTop)
         path.lineTo(blobLeft, barTop)
+    } else {
+        // Blob overlaps left corner — curve from left edge directly into blob area
+        path.cubicTo(0f, barTop, 0f, barTop, blobLeft.coerceAtLeast(0f), barTop)
     }
 
     // Blob curve: organic/liquid shape that rises above the bar
-    // Using cubic bezier curves for smooth organic look
     path.cubicTo(
-        blobLeft + halfBlob * 0.15f, barTop,           // control 1
-        blobCenterX - halfBlob * 0.45f, barTop - blobHeight, // control 2
-        blobCenterX, barTop - blobHeight               // end point (top of blob)
+        blobLeft + halfBlob * 0.15f, barTop,
+        blobCenterX - halfBlob * 0.45f, barTop - blobHeight,
+        blobCenterX, barTop - blobHeight
     )
     path.cubicTo(
-        blobCenterX + halfBlob * 0.45f, barTop - blobHeight, // control 1
-        blobRight - halfBlob * 0.15f, barTop,           // control 2
-        blobRight, barTop                               // end point (back to bar)
+        blobCenterX + halfBlob * 0.45f, barTop - blobHeight,
+        blobRight - halfBlob * 0.15f, barTop,
+        blobRight, barTop
     )
 
-    // Continue top edge to right side
-    if (blobRight < barWidth - cornerRadius) {
+    // Top edge → top-right corner
+    if (blobRight <= barWidth - cornerRadius) {
+        // Normal: flat top, then corner
         path.lineTo(barWidth - cornerRadius, barTop)
+        path.cubicTo(barWidth, barTop, barWidth, barTop, barWidth, barTop + cornerRadius)
+    } else {
+        // Blob overlaps right corner — curve from blob area into right edge
+        path.cubicTo(barWidth, barTop, barWidth, barTop, barWidth, barTop + cornerRadius)
     }
-
-    // Top-right corner
-    path.cubicTo(
-        barWidth, barTop,
-        barWidth, barTop,
-        barWidth, barTop + cornerRadius
-    )
 
     // Right edge
     path.lineTo(barWidth, barTop + barHeight - cornerRadius)
@@ -337,16 +339,7 @@ private fun DrawScope.drawBarWithBlob(
         0f, barTop + barHeight - cornerRadius
     )
 
-    // Left edge
-    path.lineTo(0f, barTop + cornerRadius)
-
-    // Top-left corner
-    path.cubicTo(
-        0f, barTop,
-        0f, barTop,
-        cornerRadius, barTop
-    )
-
+    // Left edge back to start
     path.close()
 
     drawPath(
