@@ -20,7 +20,9 @@
         android:debuggable="true"
         android:extractNativeLibs="false"
         android:forceDarkAllowed="false"
-        android:label="Animated Menu"
+        android:icon="@mipmap/ic_launcher"
+        android:label="UI Showcase"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity

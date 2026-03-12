@@ -49,7 +49,27 @@ val showcaseItems = listOf(
     ShowcaseItem("Profile", "Social Media", Icons.Filled.Person, Color(0xFF7C4DFF), Color(0xFFFF4081)),
     ShowcaseItem("Smart Home", "IoT Controls", Icons.Filled.Home, Color(0xFF00BCD4), Color(0xFF101820)),
     ShowcaseItem("Nike Product", "Hover Animation", Icons.Filled.ShoppingCart, Color(0xFFFA5B30), Color(0xFFF5F5F5)),
-    ShowcaseItem("Confetti", "Celebration FX", Icons.Filled.Celebration, Color(0xFF673AB7), Color(0xFFFFC107)),
+    ShowcaseItem("Confetti", "Payment Success", Icons.Filled.Celebration, Color(0xFF4CAF50), Color(0xFFFAFAFA)),
+    ShowcaseItem("Logo Splash", "Animated Grid", Icons.Filled.Dashboard, Color(0xFF311B92), Color(0xFF000000)),
+    ShowcaseItem("Slide Menu", "Modern SideMenu", Icons.Filled.Menu, Color(0xFF2E7D5F), Color(0xFFFF8C42)),
+    ShowcaseItem("Smart Navbar", "Animated Tabs", Icons.Filled.LinearScale, Color(0xFF7C4DFF), Color(0xFFF8F9FE)),
+    ShowcaseItem("Shoe Slider", "Product Carousel", Icons.Filled.Swipe, Color(0xFFFF6B35), Color(0xFFFF4500)),
+    ShowcaseItem("Image Slider", "Photo Portfolio", Icons.Filled.Photo, Color(0xFF1B5E20), Color(0xFFB71C1C)),
+    ShowcaseItem("Parallax", "Wine Scrolling", Icons.Filled.Layers, Color(0xFFE91E63), Color(0xFFFFF8F0)),
+    ShowcaseItem("Dessert", "Food Parallax", Icons.Filled.Cake, Color(0xFF5BC0EB), Color(0xFFFF6B35)),
+    ShowcaseItem("TV App", "Streaming UI", Icons.Filled.Tv, Color(0xFF4A2C8A), Color(0xFF0A0A0F)),
+    ShowcaseItem("Pizza App", "Food Ordering", Icons.Filled.LocalPizza, Color(0xFF2962FF), Color(0xFFFF6D00)),
+    ShowcaseItem("Shoe Store", "E-Commerce UI", Icons.Filled.Storefront, Color(0xFFF3E5F5), Color(0xFF1565C0)),
+    ShowcaseItem("Food Order", "Delivery App", Icons.Filled.Fastfood, Color(0xFF7B1FA2), Color(0xFF5C1689)),
+    ShowcaseItem("Journal", "Walking Tracker", Icons.Filled.DirectionsWalk, Color(0xFFF5E6D3), Color(0xFF1A1A2E)),
+    ShowcaseItem("Furniture", "Store App", Icons.Filled.Chair, Color(0xFF3949AB), Color(0xFF5C6BC0)),
+    ShowcaseItem("Shoe Shop", "E-Commerce App", Icons.Filled.ShoppingBag, Color(0xFFE53935), Color(0xFFF5F5F5)),
+    ShowcaseItem("Music App", "Vinyl Player V2", Icons.Filled.Album, Color(0xFF7C4DFF), Color(0xFFE8EDF5)),
+    ShowcaseItem("Plant Shop", "Smart Slide Menu", Icons.Filled.Spa, Color(0xFF2E7D32), Color(0xFFF8F9FA)),
+    ShowcaseItem("Finance", "Banking Dashboard", Icons.Filled.AccountBalance, Color(0xFF00BFA5), Color(0xFF1A2332)),
+    ShowcaseItem("Travel", "Destination Explorer", Icons.Filled.Flight, Color(0xFFFF6B35), Color(0xFF1A1A2E)),
+    ShowcaseItem("Meditation", "Breathing App", Icons.Filled.SelfImprovement, Color(0xFF7C4DFF), Color(0xFF0A0A1A)),
+    ShowcaseItem("Crypto", "Trading Dashboard", Icons.Filled.CurrencyBitcoin, Color(0xFFF7931A), Color(0xFF0B0E11)),
 )
 
 @Composable
@@ -86,14 +106,14 @@ fun ShowcaseLauncher(onNavigate: (Int) -> Unit, onBack: () -> Unit) {
                 Column(modifier = Modifier.padding(start = 8.dp)) {
                     Text("UI Showcase", color = Color.White, fontSize = 24.sp,
                         fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp)
-                    Text("10 Dribbble-Inspired Designs", color = Color(0xFF7C4DFF),
+                    Text("32 Dribbble-Inspired Designs", color = Color(0xFF7C4DFF),
                         fontSize = 13.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
                 }
                 Spacer(Modifier.weight(1f))
                 Box(modifier = Modifier.size(40.dp).clip(CircleShape)
                     .background(Color(0xFF7C4DFF).copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center) {
-                    Text("10", color = Color(0xFF7C4DFF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("32", color = Color(0xFF7C4DFF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
 
