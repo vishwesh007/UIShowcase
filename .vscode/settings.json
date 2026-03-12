@@ -1,0 +1,10 @@
+{
+  "chat.instructionFilesLocations": {
+    "alwaysdo.instructions.md": true
+  },
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": "alwaysdo.instructions.md"
+    }
+  ]
+}
