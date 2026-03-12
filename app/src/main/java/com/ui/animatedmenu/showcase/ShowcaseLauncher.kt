@@ -66,6 +66,10 @@ val showcaseItems = listOf(
     ShowcaseItem("Shoe Shop", "E-Commerce App", Icons.Filled.ShoppingBag, Color(0xFFE53935), Color(0xFFF5F5F5)),
     ShowcaseItem("Music App", "Vinyl Player V2", Icons.Filled.Album, Color(0xFF7C4DFF), Color(0xFFE8EDF5)),
     ShowcaseItem("Plant Shop", "Smart Slide Menu", Icons.Filled.Spa, Color(0xFF2E7D32), Color(0xFFF8F9FA)),
+    ShowcaseItem("Finance", "Banking Dashboard", Icons.Filled.AccountBalance, Color(0xFF00BFA5), Color(0xFF1A2332)),
+    ShowcaseItem("Travel", "Destination Explorer", Icons.Filled.Flight, Color(0xFFFF6B35), Color(0xFF1A1A2E)),
+    ShowcaseItem("Meditation", "Breathing App", Icons.Filled.SelfImprovement, Color(0xFF7C4DFF), Color(0xFF0A0A1A)),
+    ShowcaseItem("Crypto", "Trading Dashboard", Icons.Filled.CurrencyBitcoin, Color(0xFFF7931A), Color(0xFF0B0E11)),
 )
 
 @Composable
@@ -102,14 +106,14 @@ fun ShowcaseLauncher(onNavigate: (Int) -> Unit, onBack: () -> Unit) {
                 Column(modifier = Modifier.padding(start = 8.dp)) {
                     Text("UI Showcase", color = Color.White, fontSize = 24.sp,
                         fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp)
-                    Text("28 Dribbble-Inspired Designs", color = Color(0xFF7C4DFF),
+                    Text("32 Dribbble-Inspired Designs", color = Color(0xFF7C4DFF),
                         fontSize = 13.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
                 }
                 Spacer(Modifier.weight(1f))
                 Box(modifier = Modifier.size(40.dp).clip(CircleShape)
                     .background(Color(0xFF7C4DFF).copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center) {
-                    Text("28", color = Color(0xFF7C4DFF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("32", color = Color(0xFF7C4DFF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
 

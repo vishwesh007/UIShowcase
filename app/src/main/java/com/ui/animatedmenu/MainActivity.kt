@@ -69,5 +69,9 @@ fun AppNavigation() {
         26 -> ShopScreen(onBack = { currentScreen = 10 })
         27 -> MusicAppScreen(onBack = { currentScreen = 10 })
         28 -> PlantShopScreen(onBack = { currentScreen = 10 })
+        29 -> FinanceScreen(onBack = { currentScreen = 10 })
+        30 -> TravelScreen(onBack = { currentScreen = 10 })
+        31 -> MeditationScreen(onBack = { currentScreen = 10 })
+        32 -> CryptoScreen(onBack = { currentScreen = 10 })
     }
 }
