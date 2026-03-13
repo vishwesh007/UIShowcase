@@ -145,10 +145,31 @@ fun AnimatedBlobMenuScreen(onShowcase: () -> Unit = {}) {
             }
         }
 
-        // Fire Dashboard Sidebar (Video #3 – Responsive Side Navigation)
-        FireDashboardSidebar(
-            isOpen = isFireExpanded,
-            onClose = { isFireExpanded = false }
+        // Scrim overlay when Fire is expanded
+        val scrimAlpha by animateFloatAsState(
+            targetValue = if (isFireExpanded) 0.3f else 0f,
+            animationSpec = tween(300),
+            label = "scrim"
+        )
+        if (scrimAlpha > 0.01f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = scrimAlpha))
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { isFireExpanded = false }
+            )
+        }
+
+        // Fire Expandable Options (replaces FAB)
+        FireExpandableOptions(
+            isExpanded = isFireExpanded,
+            onDismiss = { isFireExpanded = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 120.dp)
         )
 
         // Animated Sidebar (drawn on top)
@@ -164,356 +185,126 @@ fun AnimatedBlobMenuScreen(onShowcase: () -> Unit = {}) {
     }
 }
 
-// ── Fire Dashboard Sidebar (Video #3 – Responsive Side Navigation) ──────────────
+// ── Fire Expandable Options (replaces FAB) ──────────────────────────────────────
 
-private data class DashNavItem(
+private data class FireOption(
     val icon: ImageVector,
     val label: String,
-    val badge: Int = 0
+    val color: Color
 )
 
-private val dashNavItems = listOf(
-    DashNavItem(Icons.Filled.Dashboard, "Dashboard"),
-    DashNavItem(Icons.Filled.Apps, "Components"),
-    DashNavItem(Icons.Filled.PlayArrow, "Animations", badge = 5),
-    DashNavItem(Icons.Filled.Extension, "Widgets"),
-    DashNavItem(Icons.Filled.Star, "Analytics"),
-    DashNavItem(Icons.Filled.Notifications, "Alerts", badge = 3),
-    DashNavItem(Icons.Filled.Settings, "Settings"),
+private val fireOptions = listOf(
+    FireOption(Icons.Filled.CameraAlt, "Camera", Color(0xFFFF5252)),
+    FireOption(Icons.Filled.Image, "Gallery", Color(0xFF448AFF)),
+    FireOption(Icons.Filled.Edit, "Note", Color(0xFF00E676)),
+    FireOption(Icons.Filled.Share, "Share", Color(0xFFAB47BC)),
 )
-
-private val DashBg = Color(0xFF0D1117)
-private val DashBgCard = Color(0xFF161B22)
-private val DashAccent = Color(0xFF4886E9)
-private val DashAccentGlow = Color(0xFF80BFFF)
-private val DashTextPrimary = Color(0xFFE6EDF3)
-private val DashTextMuted = Color(0xFF8B949E)
 
 @Composable
-private fun FireDashboardSidebar(
-    isOpen: Boolean,
-    onClose: () -> Unit
+private fun FireExpandableOptions(
+    isExpanded: Boolean,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    var selectedNavIndex by remember { mutableIntStateOf(0) }
-
-    val slideProgress by animateFloatAsState(
-        targetValue = if (isOpen) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = 0.72f,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "dashSlide"
-    )
-
-    val inf = rememberInfiniteTransition(label = "dashGlow")
-    val glowPhase by inf.animateFloat(
+    val inf = rememberInfiniteTransition(label = "fireParticles")
+    val phase by inf.animateFloat(
         0f, 6.28f,
-        infiniteRepeatable(tween(4000, easing = LinearEasing)),
-        label = "dashGlowPhase"
+        infiniteRepeatable(tween(3000, easing = LinearEasing)),
+        label = "firePhase"
     )
 
-    val density = LocalDensity.current
-    val sidebarWidthDp = 280.dp
-    val sidebarWidthPx = with(density) { sidebarWidthDp.toPx() }
-
-    if (slideProgress > 0.01f) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Scrim with dark blue tint
-            Box(
+    Box(modifier = modifier, contentAlignment = Alignment.BottomCenter) {
+        // Flame particle canvas behind the options
+        if (isExpanded) {
+            Canvas(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(DashBg.copy(alpha = (0.6f * slideProgress).coerceIn(0f, 1f)))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onClose() }
-            )
-
-            // Sidebar panel
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(sidebarWidthDp + 10.dp)
-                    .graphicsLayer {
-                        translationX = -sidebarWidthPx * (1f - slideProgress.coerceIn(0f, 1f))
-                    }
+                    .size(300.dp)
+                    .align(Alignment.Center)
             ) {
-                // Background with wave edge
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val waveAmp = 6.dp.toPx() * slideProgress
-                    val edgeX = size.width - 10.dp.toPx()
-                    val path = Path()
-                    path.moveTo(0f, 0f)
-                    path.lineTo(edgeX, 0f)
-
-                    val segments = 8
-                    val segH = size.height / segments
-                    for (i in 0 until segments) {
-                        val y1 = segH * i
-                        val y2 = segH * (i + 1)
-                        val off1 = sin(glowPhase + i * 0.8f).toFloat() * waveAmp
-                        val off2 = sin(glowPhase + (i + 1) * 0.8f).toFloat() * waveAmp
-                        path.cubicTo(
-                            edgeX + off1, y1 + segH * 0.33f,
-                            edgeX - off1, y1 + segH * 0.66f,
-                            edgeX + off2, y2
-                        )
-                    }
-                    path.lineTo(0f, size.height)
-                    path.close()
-
-                    drawPath(path, Brush.verticalGradient(listOf(DashBg, DashBgCard, DashBg)))
-
-                    // Blue accent glow line along wave edge
-                    val glowPath = Path()
-                    glowPath.moveTo(edgeX, 0f)
-                    for (i in 0 until segments) {
-                        val y1 = segH * i
-                        val y2 = segH * (i + 1)
-                        val off1 = sin(glowPhase + i * 0.8f).toFloat() * waveAmp
-                        val off2 = sin(glowPhase + (i + 1) * 0.8f).toFloat() * waveAmp
-                        glowPath.cubicTo(
-                            edgeX + off1, y1 + segH * 0.33f,
-                            edgeX - off1, y1 + segH * 0.66f,
-                            edgeX + off2, y2
-                        )
-                    }
-                    drawPath(
-                        glowPath,
-                        DashAccent.copy(alpha = (0.3f + sin(glowPhase).toFloat() * 0.1f).coerceIn(0f, 0.5f)),
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx())
+                // Rising ember particles in a ring
+                for (i in 0..19) {
+                    val angle = (i * 18f + phase * 40f) * (Math.PI / 180.0).toFloat()
+                    val radius = 90f + sin(phase * 2f + i * 0.7f).toFloat() * 50f
+                    val px = center.x + cos(angle) * radius
+                    val py = center.y - sin(phase * 1.5f + i * 0.4f).toFloat() * 70f - 30f
+                    val dotSize = (4f + sin(phase + i.toFloat()).toFloat() * 3f).coerceAtLeast(1.5f)
+                    val alpha = (0.7f + sin(phase * 2f + i.toFloat()).toFloat() * 0.25f).coerceIn(0f, 1f)
+                    drawCircle(
+                        Color(0xFFFF6D00).copy(alpha = alpha),
+                        dotSize,
+                        Offset(px, py)
                     )
                 }
+                // Warm glow ring
+                drawCircle(
+                    Color(0xFFFFC107).copy(alpha = 0.12f),
+                    radius = 110f + sin(phase).toFloat() * 20f,
+                    center = center
+                )
+            }
+        }
 
-                // Floating blue particles
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    for (i in 0..14) {
-                        val py = (size.height * ((i + 0.5f) / 15f) + sin(glowPhase * 0.5f + i * 0.7f).toFloat() * 20f).coerceIn(0f, size.height)
-                        val px = (size.width * 0.65f + sin(glowPhase * 1.3f + i * 1.1f).toFloat() * 40f).coerceIn(0f, size.width)
-                        val dotAlpha = (0.25f + sin(glowPhase + i * 0.9f).toFloat() * 0.15f).coerceIn(0f, 1f)
-                        val dotSize = (2f + sin(glowPhase * 2f + i.toFloat()).toFloat() * 1.5f).coerceAtLeast(1f)
-                        drawCircle(DashAccentGlow.copy(alpha = dotAlpha), dotSize, Offset(px, py))
-                    }
-                }
+        // Options in a semi-circle arc above the fire position
+        fireOptions.forEachIndexed { index, option ->
+            val delay = if (isExpanded) index * 50 else (fireOptions.size - index) * 30
 
-                // Content
+            val optionScale by animateFloatAsState(
+                targetValue = if (isExpanded) 1f else 0f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                ),
+                label = "fireOpt_$index"
+            )
+
+            val optionAlpha by animateFloatAsState(
+                targetValue = if (isExpanded) 1f else 0f,
+                animationSpec = tween(250, delayMillis = delay),
+                label = "fireOptA_$index"
+            )
+
+            if (optionAlpha > 0.01f) {
+                // Position in upward arc: 150° → 30° (left-to-right, curving up)
+                val arcAngle = (155f - index * 43.3f) * (Math.PI / 180.0).toFloat()
+                val arcRadius = 100f
+                val offsetX = cos(arcAngle) * arcRadius * optionScale
+                val offsetY = -sin(arcAngle) * arcRadius * optionScale
+
                 Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .statusBarsPadding()
-                        .padding(top = 20.dp, bottom = 16.dp)
+                        .offset(x = offsetX.dp, y = (offsetY - 10f).dp)
+                        .graphicsLayer {
+                            alpha = optionAlpha.coerceIn(0f, 1f)
+                            scaleX = optionScale.coerceIn(0f, 1.5f)
+                            scaleY = optionScale.coerceIn(0f, 1.5f)
+                        }
                 ) {
-                    // Close button
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .size(36.dp)
+                            .size(54.dp)
+                            .shadow(10.dp, CircleShape)
                             .clip(CircleShape)
-                            .background(DashBgCard)
+                            .background(option.color)
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }
-                            ) { onClose() },
+                            ) { onDismiss() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.Close, "Close", tint = DashTextMuted, modifier = Modifier.size(18.dp))
+                        Icon(
+                            option.icon, null,
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
                     }
-
-                    Spacer(Modifier.height(20.dp))
-
-                    // Profile section with animated entrance
-                    val profileAlpha by animateFloatAsState(
-                        targetValue = if (isOpen) 1f else 0f,
-                        animationSpec = tween(400, delayMillis = 100),
-                        label = "dashProfile"
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .graphicsLayer {
-                                alpha = profileAlpha.coerceIn(0f, 1f)
-                                translationY = (1f - profileAlpha) * -20f
-                            },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Avatar with pulsing glow ring
-                        Box(contentAlignment = Alignment.Center) {
-                            Canvas(modifier = Modifier.size(52.dp)) {
-                                drawCircle(
-                                    DashAccent.copy(alpha = (0.2f + sin(glowPhase).toFloat() * 0.1f).coerceIn(0f, 1f)),
-                                    radius = size.width / 2f
-                                )
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(DashAccent),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Filled.Person, null, tint = Color.White, modifier = Modifier.size(24.dp))
-                            }
-                        }
-
-                        Spacer(Modifier.width(12.dp))
-
-                        Column {
-                            Text("UI Showcase", color = DashTextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text("Dashboard Menu", color = DashAccent, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                        }
-                    }
-
-                    Spacer(Modifier.height(24.dp))
-
-                    // Glowing divider
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .padding(horizontal = 20.dp)
-                            .background(
-                                Brush.horizontalGradient(
-                                    listOf(Color.Transparent, DashAccent.copy(alpha = 0.3f), DashAccent.copy(alpha = 0.3f), Color.Transparent)
-                                )
-                            )
-                    )
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // Section label
+                    Spacer(Modifier.height(4.dp))
                     Text(
-                        "NAVIGATION",
-                        color = DashTextMuted,
+                        option.label,
+                        color = Color(0xFF2D2D2D),
                         fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                        fontWeight = FontWeight.SemiBold
                     )
-
-                    // Nav items with staggered entrance
-                    dashNavItems.forEachIndexed { index, item ->
-                        val itemAlpha by animateFloatAsState(
-                            targetValue = if (isOpen) 1f else 0f,
-                            animationSpec = tween(350, delayMillis = 150 + index * 60),
-                            label = "dashNavItem_$index"
-                        )
-
-                        val isActive = index == selectedNavIndex
-
-                        val bgColor by animateColorAsState(
-                            targetValue = if (isActive) DashAccent.copy(alpha = 0.15f) else Color.Transparent,
-                            animationSpec = tween(250),
-                            label = "dashNavBg_$index"
-                        )
-
-                        val iconColor by animateColorAsState(
-                            targetValue = if (isActive) DashAccent else DashTextMuted,
-                            animationSpec = tween(250),
-                            label = "dashNavIcon_$index"
-                        )
-
-                        val textColor by animateColorAsState(
-                            targetValue = if (isActive) DashTextPrimary else DashTextMuted,
-                            animationSpec = tween(250),
-                            label = "dashNavText_$index"
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 2.dp)
-                                .graphicsLayer {
-                                    alpha = itemAlpha.coerceIn(0f, 1f)
-                                    translationX = (1f - itemAlpha) * -30f
-                                }
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(bgColor)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) { selectedNavIndex = index }
-                                .padding(horizontal = 12.dp, vertical = 12.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                // Active indicator line
-                                if (isActive) {
-                                    Box(
-                                        modifier = Modifier
-                                            .width(3.dp)
-                                            .height(20.dp)
-                                            .clip(RoundedCornerShape(2.dp))
-                                            .background(DashAccent)
-                                    )
-                                    Spacer(Modifier.width(8.dp))
-                                }
-
-                                // Icon with glow behind when active
-                                Box(contentAlignment = Alignment.Center) {
-                                    if (isActive) {
-                                        Canvas(modifier = Modifier.size(32.dp)) {
-                                            drawCircle(
-                                                DashAccentGlow.copy(alpha = (0.15f + sin(glowPhase).toFloat() * 0.05f).coerceIn(0f, 1f)),
-                                                radius = size.width / 2f
-                                            )
-                                        }
-                                    }
-                                    Icon(item.icon, null, tint = iconColor, modifier = Modifier.size(22.dp))
-                                }
-
-                                Spacer(Modifier.width(14.dp))
-
-                                Text(
-                                    item.label,
-                                    color = textColor,
-                                    fontSize = 14.sp,
-                                    fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                // Badge
-                                if (item.badge > 0) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(20.dp)
-                                            .clip(CircleShape)
-                                            .background(if (isActive) DashAccent else DashTextMuted.copy(alpha = 0.5f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("${item.badge}", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(Modifier.weight(1f))
-
-                    // Bottom info card
-                    val bottomAlpha by animateFloatAsState(
-                        targetValue = if (isOpen) 1f else 0f,
-                        animationSpec = tween(400, delayMillis = 500),
-                        label = "dashBottom"
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(DashBgCard)
-                            .graphicsLayer { alpha = bottomAlpha.coerceIn(0f, 1f) }
-                            .padding(16.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Info, null, tint = DashAccent, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Column {
-                                Text("UI Showcase v1.7", color = DashTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                                Text("Responsive Navigation", color = DashTextMuted, fontSize = 10.sp)
-                            }
-                        }
-                    }
                 }
             }
         }
