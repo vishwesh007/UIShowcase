@@ -65,18 +65,18 @@ fun AnimatedAppBar(
             val path = Path().apply {
                 moveTo(0f, 0f)
                 lineTo(w, 0f)
-                lineTo(w, h - waveHeight * 2)
+                lineTo(w, h - waveHeight * 1.5f)
 
-                // Organic wave bottom edge
+                // Organic wave bottom edge — symmetric so left side isn't clipped
                 cubicTo(
-                    w * 0.75f, h - waveHeight * 0.5f,
-                    w * 0.5f, h - waveHeight * 3f,
-                    w * 0.25f, h - waveHeight * 1.5f
+                    w * 0.8f, h - waveHeight * 0.8f,
+                    w * 0.6f, h - waveHeight * 2.5f,
+                    w * 0.4f, h - waveHeight * 1.8f
                 )
                 cubicTo(
-                    w * 0.1f, h - waveHeight * 0.8f,
-                    0f, h - waveHeight * 2f,
-                    0f, h - waveHeight * 2.5f
+                    w * 0.25f, h - waveHeight * 1.2f,
+                    w * 0.1f, h - waveHeight * 1.8f,
+                    0f, h - waveHeight * 1.5f
                 )
                 close()
             }
@@ -88,11 +88,11 @@ fun AnimatedAppBar(
 
             // Accent line at bottom of wave
             val accentPath = Path().apply {
-                moveTo(w * 0.15f, h - waveHeight * 2.2f)
+                moveTo(w * 0.1f, h - waveHeight * 1.6f)
                 cubicTo(
-                    w * 0.35f, h - waveHeight * 3.2f,
-                    w * 0.55f, h - waveHeight * 1.2f,
-                    w * 0.85f, h - waveHeight * 2f
+                    w * 0.3f, h - waveHeight * 2.3f,
+                    w * 0.55f, h - waveHeight * 1.0f,
+                    w * 0.9f, h - waveHeight * 1.5f
                 )
             }
             drawPath(

@@ -73,5 +73,6 @@ fun AppNavigation() {
         30 -> TravelScreen(onBack = { currentScreen = 10 })
         31 -> MeditationScreen(onBack = { currentScreen = 10 })
         32 -> CryptoScreen(onBack = { currentScreen = 10 })
+        33 -> SidebarDashboardScreen(onBack = { currentScreen = 10 })
     }
 }
