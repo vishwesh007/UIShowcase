@@ -72,6 +72,8 @@ val showcaseItems = listOf(
     ShowcaseItem("Crypto", "Trading Dashboard", Icons.Filled.CurrencyBitcoin, Color(0xFFF7931A), Color(0xFF0B0E11)),
     ShowcaseItem("Sidebar", "Dashboard Prototype", Icons.Filled.Dashboard, Color(0xFF7C4DFF), Color(0xFF1A1A2E)),
     ShowcaseItem("Loaders", "Loading Animations", Icons.Filled.Refresh, Color(0xFFD125EB), Color(0xFF0A0A0A)),
+    ShowcaseItem("Search Bar", "Animated Inputs", Icons.Filled.Search, Color(0xFF65BF9C), Color(0xFF0A0815)),
+    ShowcaseItem("Config 2020", "Figma Keynote", Icons.Filled.Palette, Color(0xFFF7D33D), Color(0xFF0A0A12)),
 )
 
 @Composable
@@ -115,7 +117,7 @@ fun ShowcaseLauncher(onNavigate: (Int) -> Unit, onBack: () -> Unit) {
                 Box(modifier = Modifier.size(40.dp).clip(CircleShape)
                     .background(Color(0xFF7C4DFF).copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center) {
-                    Text("34", color = Color(0xFF7C4DFF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("36", color = Color(0xFF7C4DFF), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
 

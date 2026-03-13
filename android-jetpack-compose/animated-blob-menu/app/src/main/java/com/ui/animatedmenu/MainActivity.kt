@@ -75,5 +75,7 @@ fun AppNavigation() {
         32 -> CryptoScreen(onBack = { currentScreen = 10 })
         33 -> SidebarDashboardScreen(onBack = { currentScreen = 10 })
         34 -> AnimatedLoaderScreen(onBack = { currentScreen = 10 })
+        35 -> AnimatedSearchBarScreen(onBack = { currentScreen = 10 })
+        36 -> FigmaConfigScreen(onBack = { currentScreen = 10 })
     }
 }
